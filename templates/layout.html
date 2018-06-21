@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% block head %}
+            <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+            <!--Let browser know website is optimized for mobile-->
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+            <title>{% block title %}{% endblock %}</title>
+            <!-- CSS -->
+            <!--Import Google Icon Font-->
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <!-- Compiled and minified CSS -->
+            <link rel=stylesheet type=text/css href="{{ url_for('static', filename='materialize/css/materialize.min.css') }}">
+            <style type="text/css">
+            body {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+            }
+            main {
+            flex: 1 0 auto;
+            }
+            </style>
+        {% endblock %}
+    </head>
+    <body>
+        <header>
+            <!-- Dropdown Structure -->
+            <ul id="dropdown1" class="dropdown-content">
+                {%if 'username' not in session %}
+                <li><a href="{{url_for('showLogin')}}">Click Here to Login </a></li>
+            {% else %}
+                <li><a href="{{url_for('gdisconnect')}}">Logout </a></li>
+            {% endif %}
+        </ul>
+        <nav class="#4a148c purple darken-4" role="navigation">
+            <div class="nav-wrapper container">
+                <a id="logo-container" href="{{url_for('show_restaurants')}}" class="brand-logo">Restaurant App</a>
+                <ul class="right hide-on-med-and-down">
+                    <!-- Dropdown Trigger -->
+                    <li><a class="dropdown-button" href="#!" data-activates="dropdown1">Settings<i class="material-icons right">arrow_drop_down</i></a></li>
+                </ul>
+                <a href="#" data-activates="nav-mobile" class="button-collapse">
+                    <i class="material-icons">menu</i>
+                </a>
+            </div>
+        </nav>
+    </header>
+    <main>
+        <div class="container">
+            <nav>
+                <div class="nav-wrapper #ba68c8 purple lighten-2">
+                    <div class="col s12">
+                        <a href="{{url_for('show_restaurants')}}" class="breadcrumb">Home</a>
+                        {% block breadcrumb %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </nav>
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    {% block footer %}
+        <footer class="page-footer #4a148c purple darken-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col l6 s12">
+                        <h5 class="white-text">Restaurant App Bio</h5>
+                        <p class="grey-text text-lighten-4">I am building a Restaurant Market place for all the resturants. I intend to make this a restaurant management system where this will be the one stop shop for all resturants needs.</p>
+                    </div>
+                    <div class="col l3 s12">
+                        <h5 class="white-text">Settings</h5>
+                        <ul>
+                            <li><a class="white-text" href="#!">Link 1</a></li>
+                            <li><a class="white-text" href="#!">Link 2</a></li>
+                            <li><a class="white-text" href="#!">Link 3</a></li>
+                            <li><a class="white-text" href="#!">Link 4</a></li>
+                        </ul>
+                    </div>
+                    <div class="col l3 s12">
+                        <h5 class="white-text">Connect</h5>
+                        <ul>
+                            <li><a class="white-text" href="#!">Link 1</a></li>
+                            <li><a class="white-text" href="#!">Link 2</a></li>
+                            <li><a class="white-text" href="#!">Link 3</a></li>
+                            <li><a class="white-text" href="#!">Link 4</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <div class="container">
+                    Made by <a class="orange-text text-lighten-3" href="#">Suhas Srivats</a>
+                </div>
+            </div>
+        </footer>
+    {% endblock %}
+
+        <!--Import jQuery before materialize.js-->
+        <!-- <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script> -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+        <!-- Compiled and minified JavaScript -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.16/js/dataTables.material.min.js"></script>
+    {% block script %}
+    {% endblock %}
+</body>
+</html>

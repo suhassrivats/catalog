@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %} New Restaurant {% endblock %}
+{% block breadcrumb %}
+    <a href="{{url_for('new_restaurant')}}" class="breadcrumb">New</a>
+{% endblock %}
+{% block content %}
+    <h3>Add a new restaurant</h3>
+    <form action="#" method = 'POST'>
+        <p>Name:</p>
+        <input type ='text' size='30' name='name'>
+        <input type='submit' value='Create'>
+    </form>
+{% endblock %}
