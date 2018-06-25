@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Restaurant, MenuItem, User
 from flask import session as login_session
+from functools import wraps
 import random
 import string
 
@@ -32,7 +33,18 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+def login_required(f):
+    '''Login required decorator'''
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' in login_session:
+            return f(*args, **kwargs)
+        flash("Please log in to add, edit and delete content")
+        return redirect('/login')
+    return decorated_function
 # Create anti-forgery state token
+
+
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -173,8 +185,7 @@ def fbconnect():
         'web']['app_id']
     app_secret = json.loads(
         open('fb_client_secrets.json', 'r').read())['web']['app_secret']
-    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
-        app_id, app_secret, access_token)
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (app_id, app_secret, access_token)  # NOQA
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
 
@@ -189,7 +200,7 @@ def fbconnect():
     '''
     token = result.split(',')[0].split(':')[1].replace('"', '')
 
-    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token
+    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token  # NOQA
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
     # print "url sent for API access:%s"% url
@@ -259,6 +270,7 @@ def show_restaurants():
 
 
 @app.route('/restaurant/new/', methods=['GET', 'POST'])
+@login_required
 def new_restaurant():
     if 'username' not in login_session:
         return redirect('/login')
@@ -272,6 +284,7 @@ def new_restaurant():
 
 
 @app.route('/restaurant/<int:restaurant_id>/edit/', methods=['GET', 'POST'])
+@login_required
 def edit_restaurant(restaurant_id):
     editedRestaurant = session.query(Restaurant).get(restaurant_id)
     if request.method == 'POST':
@@ -284,6 +297,7 @@ def edit_restaurant(restaurant_id):
 
 
 @app.route('/restaurant/<int:restaurant_id>/delete/', methods=['GET', 'POST'])
+@login_required
 def delete_restaurant(restaurant_id):
     restaurant = session.query(Restaurant).get(restaurant_id)
     if request.method == 'POST':
@@ -309,6 +323,7 @@ def show_restaurant_menu(restaurant_id):
 
 @app.route('/restaurant/<int:restaurant_id>/menu/new/',
            methods=['GET', 'POST'])
+@login_required
 def new_menu_item(restaurant_id):
     restaurant = session.query(Restaurant).get(restaurant_id)
     menu_items = session.query(MenuItem).filter_by(restaurant_id=restaurant_id)
@@ -331,6 +346,7 @@ def new_menu_item(restaurant_id):
 
 @app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/edit/',
            methods=['GET', 'POST'])
+@login_required
 def edit_menu_item(restaurant_id, menu_id):
 
     editedMenuItem = session.query(MenuItem).filter_by(id=menu_id).one()
@@ -355,6 +371,7 @@ def edit_menu_item(restaurant_id, menu_id):
 
 @app.route('/restaurant/<int:restaurant_id>/menu/<int:menu_id>/delete/',
            methods=['GET', 'POST'])
+@login_required
 def delete_menu_item(restaurant_id, menu_id):
     deletedMenuItem = session.query(MenuItem).filter_by(id=menu_id).one()
     if request.method == 'POST':
