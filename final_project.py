@@ -56,6 +56,7 @@ def showLogin():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    '''Connect via google signin'''
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -125,6 +126,13 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+    login_session['provider'] = 'google'
+
+    # See if user exists
+    user_id = getUserID(data["email"])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
 
     output = ''
     output += '<h1>Welcome, '
@@ -137,12 +145,11 @@ def gconnect():
     print "done!"
     return output
 
-# DISCONNECT - Revoke a current user's token and reset their login_session
-
 
 @app.route('/gdisconnect')
 def gdisconnect():
-        # Only disconnect a connected user.
+    '''Disconnect: Revoke a current user's token and reset their
+    login_session'''
     access_token = login_session.get('access_token')
     if access_token is None:
         response = make_response(
@@ -174,6 +181,7 @@ def gdisconnect():
 
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
+    '''Login via third party authentication such as Facebook'''
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -247,6 +255,7 @@ def fbconnect():
 
 @app.route('/fbdisconnect')
 def fbdisconnect():
+    '''Disconnect fb login'''
     facebook_id = login_session['facebook_id']
     # The access token must me included to successfully logout
     access_token = login_session['access_token']
@@ -276,7 +285,10 @@ def new_restaurant():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newRestaurant = Restaurant(name=request.form['name'])
+        newRestaurant = Restaurant(
+            name=request.form['name'],
+            user_id=login_session['user_id'])
+        print login_session['user_id']
         session.add(newRestaurant)
         session.commit()
         return redirect(url_for('show_restaurants'))
@@ -287,7 +299,16 @@ def new_restaurant():
 @app.route('/restaurant/<int:restaurant_id>/edit/', methods=['GET', 'POST'])
 @login_required
 def edit_restaurant(restaurant_id):
-    editedRestaurant = session.query(Restaurant).get(restaurant_id)
+    # editedRestaurant = session.query(Restaurant).get(restaurant_id)
+    editedRestaurant = session.query(
+        Restaurant).filter_by(id=restaurant_id).first()
+
+    # User should not be allowed to edit other users' items.
+    if login_session['user_id'] != editedRestaurant.user_id:
+        flash('You are not authorized to edit this item. Please create your \
+            own item in order to edit.', 'danger')
+        return redirect('/')
+
     if request.method == 'POST':
         if request.form['name']:
             editedRestaurant.name = request.form['name']
@@ -301,6 +322,13 @@ def edit_restaurant(restaurant_id):
 @login_required
 def delete_restaurant(restaurant_id):
     restaurant = session.query(Restaurant).get(restaurant_id)
+
+    # User should not be allowed to delete other users' items.
+    if login_session['user_id'] != restaurant.user_id:
+        flash('You are not authorized to delete this item. Please create your \
+            own item in order to delete.', 'danger')
+        return redirect('/')
+
     if request.method == 'POST':
         session.delete(restaurant)
         session.commit()
@@ -331,7 +359,10 @@ def new_menu_item(restaurant_id):
 
     if request.method == 'POST':
         newMenuItem = MenuItem(
-            name=request.form['name'], restaurant_id=restaurant_id)
+            name=request.form['name'],
+            restaurant_id=restaurant_id,
+            user_id=login_session['user_id']
+        )
         session.add(newMenuItem)
         session.commit()
         return redirect(url_for(
@@ -349,8 +380,12 @@ def new_menu_item(restaurant_id):
            methods=['GET', 'POST'])
 @login_required
 def edit_menu_item(restaurant_id, menu_id):
-
     editedMenuItem = session.query(MenuItem).filter_by(id=menu_id).one()
+
+    # User should not be allowed to edit other users' items.
+    if login_session['user_id'] != editedMenuItem.user_id:
+        flash("You didn't add this menu item, so you can't edit it.")
+        return redirect('/')
 
     if request.method == 'POST':
         if request.form['name']:
@@ -375,6 +410,12 @@ def edit_menu_item(restaurant_id, menu_id):
 @login_required
 def delete_menu_item(restaurant_id, menu_id):
     deletedMenuItem = session.query(MenuItem).filter_by(id=menu_id).one()
+
+    # User should not be allowed to delete other users' items.
+    if login_session['user_id'] != editedMenuItem.user_id:
+        flash("You didn't add this menu item, so you can't edit it.")
+        return redirect('/')
+
     if request.method == 'POST':
         session.delete(deletedMenuItem)
         session.commit()

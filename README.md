@@ -9,6 +9,10 @@ Vagrant
 VirtualBox
 Python ~2.7
 Set Up
+
+Install all project dependencies
+`pip install -r requirements.txt`
+
 For an initial set up please follow these 2 steps:
 
 Download or clone the [fullstack-nanodegree-vm repository](https://github.com/udacity/fullstack-nanodegree-vm).
@@ -25,6 +29,8 @@ Launch the Vagrant VM from inside the vagrant folder with:
 Then move inside the catalog folder:
 
 `cd /vagrant/catalog`
+
+
 
 Then lift the application:
 
