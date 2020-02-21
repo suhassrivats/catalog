@@ -35,7 +35,7 @@ passlib==1.7.1
 pep8==1.4.6
 prettytable==0.7.2
 psycopg2==2.4.5
-pyOpenSSL==0.13
+pyOpenSSL==17.5.0
 pyasn1==0.3.7
 pyasn1-modules==0.1.5
 pycrypto==2.6.1
